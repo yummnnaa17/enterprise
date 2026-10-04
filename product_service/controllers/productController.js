@@ -7,17 +7,70 @@ function parseId(value) {
 
 function validateProduct(body) {
     body = body || {};
-    const { name, price, stock } = body;
+    const { name, price, stock, image } = body;
     const errors = [];
 
     if (typeof name !== 'string' || name.trim() === '') {
         errors.push('name wajib berupa teks dan tidak boleh kosong');
     }
+
     if (typeof price !== 'number' || !Number.isFinite(price) || price < 0) {
         errors.push('price wajib berupa angka >= 0');
     }
+
     if (!Number.isInteger(stock) || stock < 0) {
         errors.push('stock wajib berupa bilangan bulat >= 0');
+    }
+
+    // Validasi image wajib diisi
+    if (typeof image !== 'string' || image.trim() === '') {
+        errors.push('Field image wajib diisi');
+        return errors;
+    }
+
+    // Hilangkan prefix data URI jika ada
+    let base64Image = image.trim();
+
+    if (base64Image.startsWith('data:image/')) {
+        const separatorIndex = base64Image.indexOf('base64,');
+
+        if (separatorIndex === -1) {
+            errors.push('Field image harus berupa Base64 yang valid');
+            return errors;
+        }
+
+        base64Image = base64Image.substring(separatorIndex + 7);
+    }
+
+    // Cek karakter Base64
+    const base64Regex = /^[A-Za-z0-9+/]+={0,2}$/;
+
+    if (!base64Regex.test(base64Image)) {
+        errors.push('Field image harus berupa Base64 yang valid');
+        return errors;
+    }
+
+    // Panjang Base64 harus kelipatan 4
+    if (base64Image.length % 4 !== 0) {
+        errors.push('Field image harus berupa Base64 yang valid');
+        return errors;
+    }
+
+    // Decode Base64 untuk mengetahui ukuran file asli
+    let imageBuffer;
+
+    try {
+        imageBuffer = Buffer.from(base64Image, 'base64');
+    } catch (error) {
+        errors.push('Field image harus berupa Base64 yang valid');
+        return errors;
+    }
+
+    // Maksimal 2 MB
+    const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
+
+    if (imageBuffer.length > MAX_IMAGE_SIZE) {
+        errors.push('Ukuran image maksimal 2 MB');
     }
 
     return errors;
@@ -29,7 +82,8 @@ function productPayload(body) {
         name: body.name.trim(),
         description: body.description == null ? null : String(body.description),
         price: body.price,
-        stock: body.stock
+        stock: body.stock,
+        image: body.image.trim()
     };
 }
 
