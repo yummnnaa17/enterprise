@@ -1,17 +1,13 @@
 <?php
 
-// app/Exceptions/CartItemNotFoundException.php
-// Dilempar oleh CartService kalau item keranjang yang dicari tidak ada.
-// Controller menangkapnya dan mengubahnya menjadi response 404.
-
 namespace App\Exceptions;
 
 use RuntimeException;
 
-class CartItemNotFoundException extends RuntimeException
+class ProductNotFoundException extends RuntimeException
 {
-    public function __construct(int $id)
+    public function __construct(int $productId)
     {
-        parent::__construct("Item keranjang dengan id {$id} tidak ditemukan");
+        parent::__construct("Product dengan id {$productId} tidak ditemukan");
     }
-}
+}   

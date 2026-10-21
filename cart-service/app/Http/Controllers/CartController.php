@@ -45,11 +45,12 @@ class CartController extends Controller
                 $data['quantity'] ?? 1
             );
             
-            // 201 kalau item baru dibuat, 200 kalau hanya menambah jumlah item yang sudah ada.
             return response()->json([
                 'message' => 'Item berhasil ditambahkan ke keranjang',
                 'data' => $item,
             ], $item->wasRecentlyCreated ? 201 : 200);
+        }    catch (ProductNotFoundException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
         } catch (Throwable $e) {
             return $this->errorResponse($e, 'menambahkan item');
         }
